@@ -1,0 +1,20 @@
+notes for quiz app quiz_master, django final exam module 35 ostad.
+in project folder cmd:
+"C:\Program Files\Python311\python.exe" -m venv quiz-venv
+quiz-venv\Scripts\activate -------------
+pip install django
+
+code .
+django-admin startproject quiz_master .
+python manage.py startapp users
+python manage.py startapp quiz
+python manage.py startapp core
+add "core", "users", "quiz" to installed apps in settings
+
+python manage.py runserver ---------
+ctrl+c
+
+write user model
+
+python manage.py makemigrations
+python manage.py migrate

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}QuizMaster - welcome{% endblock %}
+{% block content %}
+<div class="min-h-[60vh] ">
+	<h1 class="text-3xl bg-blue-50">QuizMaster Welcome</h1>
+	<p>Welcome {% if user.is_authenticated %}{{user.username}}, {% else %}Anonymous, {% endif %}to QuizMaster App</p>
+</div>
+{% endblock content %}
