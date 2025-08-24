@@ -12,6 +12,7 @@ from django.db.models import Avg, Count, Q
 from .models import Quiz, Question, Option, QuizAttempt, UserAnswer, Category, Rating
 from .forms import QuizForm, QuestionForm, OptionForm, TakeQuizForm, RatingForm, QuestionWithOptionsForm
 from django.db import models
+from datetime import datetime
 
 
 class QuizListView(ListView):
@@ -94,71 +95,150 @@ class QuizDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(self.request, 'Quiz deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-class TakeQuizView(LoginRequiredMixin, DetailView):
-    model = Quiz
-    template_name = 'quiz/take_quiz.html'
-    context_object_name = 'quiz'
-    
-    def get_queryset(self):
-        return Quiz.objects.filter(is_active=True)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = TakeQuizForm(quiz=self.object)
-        return context
-    
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = TakeQuizForm(request.POST, quiz=self.object)
+class TakeQuizView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
+        questions = list(quiz.questions.all().order_by('order'))
+        total_questions = len(questions)
         
-        if form.is_valid():
-            start_time = timezone.now()
-            with transaction.atomic():
-                # Create quiz attempt
-                attempt = QuizAttempt.objects.create(
-                    user=request.user,
-                    quiz=self.object,
-                    max_score=self.object.questions.aggregate(total=models.Sum('points'))['total'] or 0
-                )                
-                score = 0                
-                # Process each question
-                for question in self.object.questions.all():
-                    field_name = f"question_{question.id}"
-                    selected_option_id = form.cleaned_data[field_name]
-                    selected_option = Option.objects.get(id=selected_option_id)
-                    
-                    is_correct = selected_option.is_correct
-                    if is_correct:
-                        score += question.points
-                    
-                    # Save user answer
-                    UserAnswer.objects.create(
-                        attempt=attempt,
-                        question=question,
-                        selected_option=selected_option,
-                        is_correct=is_correct
-                    )
-                
-                # Update attempt score and time taken
-                attempt.score = score
-                attempt.time_taken = timezone.now() - start_time
-                attempt.save()
-                
-                # Send email with quiz results
-                send_mail(
-                    'Quiz Result',
-                    f'Your result for {self.object.title}:\nScore: {score}/{attempt.max_score}\nTime taken: {attempt.time_taken}',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                
-                messages.success(request, f'Quiz completed! Your score: {score}/{attempt.max_score}')
-                return redirect('quiz-result', pk=attempt.pk)
+        # Check if user clicked previous
+        if 'previous' in request.GET:
+            current_quiz_data = request.session['current_quiz']
+            current_question_index = max(0, current_quiz_data['current_question'] - 1)
+            current_quiz_data['current_question'] = current_question_index
+            request.session['current_quiz'] = current_quiz_data
+        else:
+            # Initialize session variables if not exists
+            if 'current_quiz' not in request.session or request.session['current_quiz']['quiz_id'] != quiz.id:
+                request.session['current_quiz'] = {
+                    'quiz_id': quiz.id,
+                    'current_question': 0,
+                    'answers': {},
+                    'start_time': timezone.now().isoformat()
+                }
         
-        context = self.get_context_data()
-        context['form'] = form
-        return self.render_to_response(context)
+        current_quiz_data = request.session['current_quiz']
+        current_question_index = current_quiz_data['current_question']
+        
+        # Check if quiz is completed
+        if current_question_index >= total_questions:
+            return redirect('quiz-complete', pk=quiz.id)  # Changed from quiz_id to pk
+        
+        current_question = questions[current_question_index]
+        
+        # Get user's previous answer if any
+        user_answer = None
+        if str(current_question.id) in current_quiz_data['answers']:
+            user_answer = current_quiz_data['answers'][str(current_question.id)]
+        
+        form = TakeQuizForm(question=current_question, initial={'answer': user_answer})
+        
+        return render(request, 'quiz/take_quiz.html', {
+            'quiz': quiz,
+            'question': current_question,
+            'form': form,
+            'current_question': current_question_index + 1,
+            'total_questions': total_questions,
+            'progress': int((current_question_index / total_questions) * 100)
+        })
+    
+    def post(self, request, pk):
+        quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
+        questions = list(quiz.questions.all().order_by('order'))
+        total_questions = len(questions)
+        
+        current_quiz_data = request.session['current_quiz']
+        current_question_index = current_quiz_data['current_question']
+        current_question = questions[current_question_index]
+        
+        # Get the selected option
+        selected_option_id = request.POST.get('answer')
+        
+        if selected_option_id:
+            # Save the answer in session
+            current_quiz_data['answers'][str(current_question.id)] = selected_option_id
+            request.session['current_quiz'] = current_quiz_data
+        
+        # Move to next question
+        current_question_index += 1
+        current_quiz_data['current_question'] = current_question_index
+        request.session['current_quiz'] = current_quiz_data
+        
+        # Check if quiz is completed
+        if current_question_index >= total_questions:
+            return redirect('quiz-complete', pk=quiz.id)  # Changed from quiz_id to pk
+        
+        return redirect('quiz-take', pk=quiz.id)
+    
+# works with TakeQuizView
+class QuizCompleteView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
+        questions = list(quiz.questions.all().order_by('order'))
+        
+        # Get quiz data from session
+        if 'current_quiz' not in request.session or request.session['current_quiz']['quiz_id'] != quiz.id:
+            messages.error(request, 'Quiz session expired. Please try again.')
+            return redirect('quiz-detail', pk=quiz.id)
+        
+        current_quiz_data = request.session['current_quiz']
+        answers = current_quiz_data['answers']
+        start_time = datetime.fromisoformat(current_quiz_data['start_time'])  # Fixed this line
+        
+        # Calculate score
+        score = 0
+        max_score = sum(q.points for q in questions)
+        
+        with transaction.atomic():
+            # Create quiz attempt
+            attempt = QuizAttempt.objects.create(
+                user=request.user,
+                quiz=quiz,
+                score=score,
+                max_score=max_score,
+                time_taken=timezone.now() - start_time
+            )
+            
+            # Save user answers
+            for question in questions:
+                if str(question.id) in answers:
+                    selected_option_id = answers[str(question.id)]
+                    try:
+                        selected_option = Option.objects.get(id=selected_option_id)
+                        is_correct = selected_option.is_correct
+                        
+                        if is_correct:
+                            score += question.points
+                            
+                        UserAnswer.objects.create(
+                            attempt=attempt,
+                            question=question,
+                            selected_option=selected_option,
+                            is_correct=is_correct
+                        )
+                    except Option.DoesNotExist:
+                        pass
+            
+            # Update the score
+            attempt.score = score
+            attempt.save()
+            
+            # Send email with quiz results
+            send_mail(
+                'Quiz Result',
+                f'Your result for {quiz.title}:\nScore: {score}/{max_score}\nTime taken: {attempt.time_taken}',
+                settings.DEFAULT_FROM_EMAIL,
+                [request.user.email],
+                fail_silently=False,
+            )
+        
+        # Clear session
+        if 'current_quiz' in request.session:
+            del request.session['current_quiz']
+        
+        messages.success(request, f'Quiz completed! Your score: {score}/{max_score}')
+        return redirect('quiz-result', pk=attempt.id)
+
 
 class QuizResultView(LoginRequiredMixin, DetailView):
     model = QuizAttempt

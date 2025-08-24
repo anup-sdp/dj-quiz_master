@@ -77,20 +77,18 @@ class OptionForm(StyledFormMixin, forms.ModelForm):
         model = Option
         fields = ['text', 'is_correct']
 
-class TakeQuizForm(StyledFormMixin, forms.Form):
+
+class TakeQuizForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        quiz = kwargs.pop('quiz')
+        self.question = kwargs.pop('question')
         super().__init__(*args, **kwargs)
         
-        for question in quiz.questions.all():
-            field_name = f"question_{question.id}"
-            choices = [(option.id, option.text) for option in question.options.all()]
-            self.fields[field_name] = forms.ChoiceField(
-                label=question.text,
-                choices=choices,
-                widget=forms.RadioSelect,
-                required=True
-            )
+        choices = [(option.id, option.text) for option in self.question.options.all()]
+        self.fields['answer'] = forms.ChoiceField(
+            choices=choices,
+            widget=forms.RadioSelect,
+            required=True
+        )
 
 class RatingForm(StyledFormMixin, forms.ModelForm):
     class Meta:
