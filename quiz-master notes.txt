@@ -18,3 +18,67 @@ write user model
 
 python manage.py makemigrations
 python manage.py migrate
+
+python manage.py createsuperuser
+admin-1234
+
+==============================
+tailwind, daisyUI:
+npm init -y  ---(package.json created)
+
+# Install Tailwind CSS 4.x (latest)
+npm install tailwindcss@latest  ---(node modules, package-lock.json created)
+
+# Install DaisyUI
+npm install daisyui@latest
+
+# Install PostCSS and Autoprefixer
+npm install postcss autoprefixer
+
+write tailwind.config.js:
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './templates/**/*.html',
+    './*/templates/**/*.html',
+    './static/js/**/*.js',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [
+    require('daisyui'),
+  ],
+  daisyui: {
+    themes: ["light", "dark", "cupcake"], // You can customize this
+  },
+}
+
+update build scrips in package.json
+
+mkdir -p static/css
+Create static/css/input.css:
+@import "tailwindcss";
+@plugin "daisyui";
+
+in settings:
+import os
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static",]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # For production
+
+For development (with watch mode): npm run build-css
+For production: npm run build-css-prod
+
+# Build CSS with npx
+npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch  -----------------
+
+# Production build with npx
+npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
+
+
+Alternative: Use the new Vite plugin (recommended)
+
+
+
+

@@ -1,0 +1,29 @@
+{
+  "name": "quiz_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-css": "tailwindcss -i ./static/src/css/input.css -o ./static/css/output.css --watch",
+    "build-css-prod": "tailwindcss -i ./static/src/css/input.css -o ./static/css/output.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anup-sdp/dj-quiz_master.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anup-sdp/dj-quiz_master/issues"
+  },
+  "homepage": "https://github.com/anup-sdp/dj-quiz_master#readme",
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "daisyui": "^5.0.50",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.12"
+  }
+}

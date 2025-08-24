@@ -5,3 +5,6 @@ git branch -M main
 git remote add origin https://github.com/anup-sdp/dj-quiz_master.git
 git push -u origin main
 ---
+git add .
+git commit -m "v1.0"
+git push -u origin main

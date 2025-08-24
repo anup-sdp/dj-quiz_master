@@ -1,16 +1,11 @@
-from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+# users, forms.py:
 from django import forms
-from django.contrib.auth.models import Permission, Group
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
-
-#from django.conf import settings
-#User = settings.AUTH_USER_MODEL
-
-User = get_user_model()
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import CustomUser
+from django import forms
 
 # Mixin to apply style to form fields
-class FormStyleMixin:
+class FormStyleMixin:  # was StyledFormMixin2
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_styled_widgets()
@@ -69,85 +64,28 @@ class FormStyleMixin:
                     'class': self.default_classes
                 })
 
-class UserRegistrationForm(FormStyleMixin, UserCreationForm):    
+class CustomUserCreationForm(FormStyleMixin, UserCreationForm):
     email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30, required=False)
-    last_name = forms.CharField(max_length=30, required=False)
+    phone_number = forms.CharField(required=False)
     
     class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2']
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        #self.fields['password1'].label = 'Password'  # ----
-        #self.fields['password2'].label = 'Confirm Password'    # ---- alternately done in StyledFormMixin in event_mgmt app
-        # Customize field labels and help text
-        self.fields['username'].help_text = None
-        self.fields['password1'].help_text = None
-        self.fields['password2'].help_text = None
-        
-        # Custom placeholders
-        self.fields['username'].widget.attrs['placeholder'] = 'Choose a username'
-        self.fields['password1'].widget.attrs['placeholder'] = 'Create a password'
-        self.fields['password2'].widget.attrs['placeholder'] = 'Confirm your password'
-        
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email
-        
+        model = CustomUser
+        fields = ("username", "email", "password1", "password2", "phone_number")
+    
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        user.email = self.cleaned_data["email"]
+        user.phone_number = self.cleaned_data["phone_number"]
+        if user.is_superuser:
+            user.user_type = 'admin'
         if commit:
             user.save()
         return user
 
-
+class CustomAuthenticationForm(FormStyleMixin, AuthenticationForm):
+    username = forms.CharField(label="Username")
 
 class UserUpdateForm(FormStyleMixin, forms.ModelForm):
-    # Form for updating user profile (without password)
-    email = forms.EmailField(required=True)
-    
     class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'phone_number']
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Custom placeholders
-        self.fields['username'].widget.attrs['placeholder'] = 'Username'
-        self.fields['email'].widget.attrs['placeholder'] = 'Email address'
-        self.fields['first_name'].widget.attrs['placeholder'] = 'First name'
-        self.fields['last_name'].widget.attrs['placeholder'] = 'Last name'
-        self.fields['phone_number'].widget.attrs['placeholder'] = 'Phone Number'
-        
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        # Check if email exists for other users (excluding current user)
-        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email
-    
-
-
-class EditProfileForm(FormStyleMixin, forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['email', 'first_name', 'last_name', 'phone_number', 'bio', 'profile_image']
-
-# --------------
-
-class CustomPasswordChangeForm(FormStyleMixin, PasswordChangeForm):
-    pass
-
-class CustomPasswordResetForm(FormStyleMixin, PasswordResetForm):
-    pass
-
-class CustomPasswordResetConfirmForm(FormStyleMixin, SetPasswordForm):
-    pass
-
+        model = CustomUser
+        fields = ("first_name", "last_name", "email", "phone_number", "bio")

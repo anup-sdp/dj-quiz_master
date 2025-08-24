@@ -1,0 +1,8 @@
+body{
+	background-color:whitesmoke;
+}
+
+.fade-out {
+	transition: opacity 0.3s ease-out;
+	opacity: 0;
+}

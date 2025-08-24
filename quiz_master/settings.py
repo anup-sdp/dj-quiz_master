@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -118,7 +119,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static",]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # For production
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -128,3 +131,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # -------------
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" # ---
+EMAIL_BACKEND = 'users.email_backends.CustomEmailBackend'
+EMAIL_HOST = "smtp.gmail.com" # commonly used for development, for production use aws, sandgrid etc email service
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "anup30coc@gmail.com"
+EMAIL_HOST_PASSWORD = "wapr ajyp hudc bqoj"
+DEFAULT_FROM_EMAIL = "quiz_master_app"
+
+# Authentication settings
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'welcome-page'
+LOGOUT_REDIRECT_URL = 'welcome-page'
+
+# Media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+

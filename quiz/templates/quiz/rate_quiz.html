@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Rate Quiz - QuizMaster{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold mb-6">Rate Quiz: {{ quiz.title }}</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2">Your rating (1-7):</label>
+                <div class="flex items-center">
+                    <span class="mr-2">1</span>
+                    {{ form.score }}
+                    <span class="ml-2">7</span>
+                </div>
+                {% if form.score.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.score.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="flex justify-end">
+                <a href="{% url 'quiz-detail' quiz.pk %}" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Cancel</a>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Rating</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

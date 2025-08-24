@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Quiz Result - QuizMaster{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold mb-4">Quiz Result</h1>
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-xl font-semibold">{{ attempt.quiz.title }}</h2>
+                <p class="text-gray-600">Completed on: {{ attempt.completed_at|date:"F d, Y, P" }}</p>
+                {% if attempt.time_taken %}
+                    <p class="text-gray-600">Time taken: {{ attempt.time_taken|duration:"H:i:s" }}</p>
+                {% endif %}
+            </div>
+            <div class="text-2xl font-bold {% if attempt.score == attempt.max_score %}text-green-600{% elif attempt.score >= attempt.max_score/2 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                {{ attempt.score }}/{{ attempt.max_score }}
+            </div>
+        </div>
+        
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+            {% if attempt.max_score > 0 %}
+                {% widthratio attempt.score attempt.max_score 100 as percentage %}
+                <div class="bg-blue-600 h-4 rounded-full progress-bar" data-width="{{ percentage }}"></div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center text-lg">
+            {% if attempt.score == attempt.max_score %}
+                <span class="text-green-600 font-bold">Perfect Score! 🎉</span>
+            {% elif attempt.score >= attempt.max_score/2 %}
+                <span class="text-yellow-600 font-bold">Good Job! 👍</span>
+            {% else %}
+                <span class="text-red-600 font-bold">Keep Practicing! 💪</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4">Your Answers</h2>
+        <div class="space-y-6">
+            {% for answer in attempt.answers.all %}
+                <div class="border-b pb-6 last:border-0 last:pb-0">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold">{{ answer.question.text }}</h3>
+                        <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">{{ answer.question.points }} points</span>
+                    </div>
+                    <div class="ml-6">
+                        <p class="mb-1">
+                            Your answer: 
+                            <span class="{% if answer.is_correct %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                                {{ answer.selected_option.text }}
+                            </span>
+                            {% if answer.is_correct %}
+                                <span class="text-green-600 ml-2">✓</span>
+                            {% else %}
+                                <span class="text-red-600 ml-2">✗</span>
+                            {% endif %}
+                        </p>
+                        {% if not answer.is_correct %}
+                            <p class="text-gray-600">
+                                Correct answer: 
+                                <span class="text-green-600 font-medium">
+                                    {% for option in answer.question.options.all %}
+                                        {% if option.is_correct %}{{ option.text }}{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        width: 0%;
+        transition: width 1s ease-in-out;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.getAttribute('data-width');
+            setTimeout(() => {
+                bar.style.width = width + '%';
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}
