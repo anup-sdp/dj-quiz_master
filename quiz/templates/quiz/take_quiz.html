@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Take Quiz: {{ quiz.title }} - QuizMaster{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold mb-4">{{ quiz.title }}</h1>
+        <p class="text-gray-700 mb-4">{{ quiz.description }}</p>
+        <div class="text-gray-600">{{ quiz.questions.count }} questions</div>
+    </div>
+    
+    <form method="post" class="bg-white rounded-lg shadow-md p-6">
+        {% csrf_token %}
+        <div class="space-y-6">
+            {% for field in form %}
+                <div class="border-b pb-6 last:border-0 last:pb-0">
+                    <h3 class="font-semibold mb-3">{{ field.label }}</h3>
+                    <div class="space-y-2">
+                        {% for choice in field %}
+                            <div class="flex items-center">
+                                {{ choice.tag }}
+                                <label for="{{ choice.id_for_label }}" class="ml-2">{{ choice.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if field.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 flex justify-end">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">Submit Quiz</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

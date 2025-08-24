@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Max
 
 User = get_user_model()
 
@@ -47,6 +48,16 @@ class Question(models.Model):
     
     def __str__(self):
         return f"{self.quiz.title} - Q{self.order}: {self.text[:50]}..."
+    
+    def save(self, *args, **kwargs):
+        # If this is a new question (no pk yet), set the order automatically
+        if not self.pk:
+            # Get the current maximum order number for this quiz
+            max_order = Question.objects.filter(quiz=self.quiz).aggregate(Max('order'))['order__max']
+            # If there are no questions yet, start with 1, otherwise increment by 1
+            self.order = (max_order or 0) + 1
+        
+        super().save(*args, **kwargs)
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')

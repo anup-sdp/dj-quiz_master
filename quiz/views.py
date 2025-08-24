@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.db import transaction
@@ -10,7 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg, Count, Q
 from .models import Quiz, Question, Option, QuizAttempt, UserAnswer, Category, Rating
-from .forms import QuizForm, QuestionForm, OptionForm, TakeQuizForm, RatingForm
+from .forms import QuizForm, QuestionForm, OptionForm, TakeQuizForm, RatingForm, QuestionWithOptionsForm
 from django.db import models
 
 
@@ -236,3 +236,48 @@ class RateQuizView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['quiz'] = get_object_or_404(Quiz, id=self.kwargs['quiz_id'])
         return context
+    
+
+class AddQuestionView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = 'quiz/add_question.html'
+    
+    def test_func(self):
+        quiz = get_object_or_404(Quiz, pk=self.kwargs['quiz_pk'])
+        return self.request.user == quiz.created_by or self.request.user.is_staff
+    
+    def get(self, request, quiz_pk):
+        quiz = get_object_or_404(Quiz, pk=quiz_pk)
+        form = QuestionWithOptionsForm()
+        return render(request, self.template_name, {'quiz': quiz, 'form': form})
+    
+    def post(self, request, quiz_pk):
+        quiz = get_object_or_404(Quiz, pk=quiz_pk)
+        form = QuestionWithOptionsForm(request.POST)
+        
+        if form.is_valid():
+            with transaction.atomic():
+                # Get the next order number
+                next_order = quiz.questions.count() + 1
+                
+                # Create the question
+                question = Question.objects.create(
+                    quiz=quiz,
+                    text=form.cleaned_data['question_text'],
+                    order=next_order,  # Set order automatically
+                    points=form.cleaned_data['points']
+                )
+                # Create the options
+                correct_option = int(form.cleaned_data['correct_option'])
+                for i in range(1, 5):
+                    option_text = form.cleaned_data[f'option_{i}']
+                    is_correct = (i == correct_option)
+                    Option.objects.create(
+                        question=question,
+                        text=option_text,
+                        is_correct=is_correct
+                    )
+                
+                messages.success(request, 'Question added successfully!')
+                return redirect('quiz-detail', pk=quiz.pk)
+        
+        return render(request, self.template_name, {'quiz': quiz, 'form': form})

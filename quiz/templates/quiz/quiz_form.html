@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-plus-circle mr-2 text-cyan-600"></i>Create New Quiz
+        </h1>
+        <p class="text-gray-600">Design your quiz by filling out the form below</p>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <!-- Form Header -->
+        <div class="bg-gradient-to-r from-cyan-600 to-blue-600 p-5 text-white">
+            <h2 class="text-xl font-semibold"><i class="fas fa-pencil-alt mr-2"></i>Quiz Details</h2>
+            <p class="text-cyan-100 text-sm mt-1">Provide information about your quiz</p>
+        </div> 
+        
+        <!-- Form -->
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <!-- Form Fields -->
+            <div class="space-y-5">
+                <!-- Title -->
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-heading mr-1 text-cyan-600"></i>Quiz Title
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.title.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-align-left mr-1 text-cyan-600"></i>Description
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.description.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Category -->
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-folder mr-1 text-cyan-600"></i>Category
+                    </label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.category.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Time Limit -->
+                <div class="flex">
+                    <label for="{{ form.time_limit.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-clock mr-1 text-cyan-600"></i>Time Limit minutes (optional)
+                    </label>
+                    {{ form.time_limit }}
+					                    
+                    {% if form.time_limit.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.time_limit.errors }}</p>
+                    {% endif %}
+                </div>               
+                
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-8 pt-5 border-t border-gray-200">
+                <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2.5 px-5 rounded-lg transition duration-200 flex-1 flex items-center justify-center">
+                    <i class="fas fa-plus-circle mr-2"></i>Create Quiz
+                </button>
+                <a href="{% url 'quiz-list' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2.5 px-5 rounded-lg transition duration-200 text-center flex-1 flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Info Box -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 mt-1 mr-2"></i>
+            <p>Your quiz will be immediately available to users if marked as active. You can add questions after creating the quiz.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add some interactivity to the checkbox
+    const isActiveCheckbox = document.getElementById("{{ form.is_active.id_for_label }}");
+    if (isActiveCheckbox) {
+        // Add Tailwind classes to the checkbox
+        isActiveCheckbox.classList.add("h-5", "w-5", "text-cyan-600", "rounded", "focus:ring-cyan-500");
+        
+        // Add a change event to provide visual feedback
+        isActiveCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.parentElement.classList.add("text-green-600");
+            } else {
+                this.parentElement.classList.remove("text-green-600");
+            }
+        });
+    }
+</script>
+{% endblock %}

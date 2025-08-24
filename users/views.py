@@ -24,7 +24,7 @@ class SignUpView(CreateView):
         )
         send_mail(
             'Verify your email address',
-            f'Please click the following link to verify your email: {verification_url}',
+            f'Please click the following link to verify your email: {verification_url} \n -QuizMaster App',
             settings.DEFAULT_FROM_EMAIL,
             [self.object.email],
             fail_silently=False,
