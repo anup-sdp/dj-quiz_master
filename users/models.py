@@ -17,8 +17,10 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.user_type = 'admin'
         if not self.pk:  # only for new users
-            self.is_active = True # set True by activation email.
+            self.is_active = True # set True by activation email.                
         super().save(*args, **kwargs)
 
     def __str__(self):

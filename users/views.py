@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, View
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
@@ -58,10 +58,26 @@ class CustomLoginView(LoginView):
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('welcome-page')
 
+class ProfileView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        if user.user_type == 'admin':
+            # For admin users, show all users
+            users_list = User.objects.all() # CustomUser
+            return render(request, 'users/admin_profile.html', {
+                'user': user,
+                'users_list': users_list
+            })
+        else:
+            # For regular users, show only their profile
+            return render(request, 'users/user_profile.html', {
+                'user': user
+            })
+
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UserUpdateForm
-    template_name = 'users/profile.html'
+    template_name = 'users/edit_profile.html'
     success_url = reverse_lazy('profile')
     
     def get_object(self):

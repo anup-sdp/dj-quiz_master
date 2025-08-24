@@ -7,4 +7,6 @@ urlpatterns = [
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
     path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('verify/<uuid:token>/', views.verify_email, name='verify-email'),
+	path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('profile/edit/', views.ProfileUpdateView.as_view(), name='edit-profile'),
 ]

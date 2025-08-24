@@ -24,7 +24,7 @@
                     <a href="{% url 'my-quiz-list' %}" class="hover:text-blue-200">My Quizzes</a>
                     <a href="{% url 'user-history' %}" class="hover:text-blue-200">My History</a>
                     <a href="{% url 'leaderboard' %}" class="hover:text-blue-200">Leaderboard</a>
-                    <a href="{% url 'profile' %}" class="hover:text-blue-200">Profile</a>                    
+                    <a href="{% url 'profile' %}" class="hover:text-blue-200">Profile</a>         
 					<div>
 						<form method="post" action="{% url 'logout' %}">
 							{% csrf_token %}

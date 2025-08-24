@@ -85,7 +85,16 @@ class CustomUserCreationForm(FormStyleMixin, UserCreationForm):
 class CustomAuthenticationForm(FormStyleMixin, AuthenticationForm):
     username = forms.CharField(label="Username")
 
-class UserUpdateForm(FormStyleMixin, forms.ModelForm):
+
+class UserUpdateForm(forms.ModelForm): # use FormStyleMixin,  ?
     class Meta:
         model = CustomUser
         fields = ("first_name", "last_name", "email", "phone_number", "bio")
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'})

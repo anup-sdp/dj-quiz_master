@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load duration_filters %}
+{% block title %}Admin Profile - QuizMaster{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Admin Profile</h1>
+            <a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit My Profile</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Personal Information</h2>
+                <div class="space-y-3">
+                    <p><span class="font-medium">Username:</span> {{ user.username }}</p>
+                    <p><span class="font-medium">Email:</span> {{ user.email }}</p>
+                    <p><span class="font-medium">First Name:</span> {{ user.first_name|default:"Not provided" }}</p>
+                    <p><span class="font-medium">Last Name:</span> {{ user.last_name|default:"Not provided" }}</p>
+                    <p><span class="font-medium">Phone Number:</span> {{ user.phone_number|default:"Not provided" }}</p>
+                    <p><span class="font-medium">User Type:</span> {{ user.get_user_type_display }}</p>
+                    <p><span class="font-medium">Email Verified:</span> 
+                        {% if user.is_email_verified %}
+                            <span class="text-green-600">Yes</span>
+                        {% else %}
+                            <span class="text-red-600">No</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Account Information</h2>
+                <div class="space-y-3">
+                    <p><span class="font-medium">Account Created:</span> {{ user.created_at|date:"F d, Y" }}</p>
+                    <p><span class="font-medium">Last Updated:</span> {{ user.updated_at|date:"F d, Y" }}</p>
+                    <p><span class="font-medium">Account Status:</span> 
+                        {% if user.is_active %}
+                            <span class="text-green-600">Active</span>
+                        {% else %}
+                            <span class="text-red-600">Inactive</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        {% if user.bio %}
+            <div class="mt-6 bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Bio</h2>
+                <p>{{ user.bio }}</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6">All Users</h2>
+        
+        {% if users_list %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for user_item in users_list %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ user_item.username }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ user_item.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if user_item.user_type == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ user_item.get_user_type_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if user_item.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if user_item.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ user_item.created_at|date:"M d, Y" }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-600">No users found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
