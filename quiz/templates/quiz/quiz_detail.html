@@ -1,76 +1,74 @@
 {% extends "base.html" %}
-{% block title %}All Quizzes - QuizMaster{% endblock %}
+{% block title %}{{ quiz.title }} - QuizMaster{% endblock %}
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Available Quizzes</h1>
-    
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div class="flex flex-wrap gap-4">
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold mb-4">{{ quiz.title }}</h1>
+        <p class="text-gray-700 mb-4">{{ quiz.description }}</p>
+        <div class="flex justify-between items-center">
             <div>
-                <label class="block text-gray-700 mb-2">Filter by Category:</label>
-                <select id="category-filter" class="border rounded p-2" onchange="location.href=`?category=${this.value}&sort={{ sort_by }}`">
-                    <option value="">All Categories</option>
-                    {% for category in categories %}
-                        <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category %}selected{% endif %}>{{ category.name }}</option>
-                    {% endfor %}
-                </select>
+                <span class="text-gray-600">Created by: {{ quiz.created_by.username }}</span>
+                <span class="mx-2">•</span>
+                <span class="text-gray-600">{{ quiz.questions.count }} questions</span>
+                {% if quiz.category %}
+                    <span class="mx-2">•</span>
+                    <span class="text-gray-600">Category: {{ quiz.category.name }}</span>
+                {% endif %}
+                {% if quiz.time_limit %}
+                    <span class="mx-2">•</span>
+                    <span class="text-gray-600">Time limit: {{ quiz.time_limit }} minutes</span>
+                {% endif %}
             </div>
-            
-            <div>
-                <label class="block text-gray-700 mb-2">Sort by:</label>
-                <select id="sort-by" class="border rounded p-2" onchange="location.href=`?category={{ selected_category }}&sort=${this.value}`">
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
-                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
-                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
-                </select>
+            <div class="flex space-x-2">
+                {% if user.is_authenticated and user == quiz.created_by or user.is_staff %}
+                    <a href="{% url 'add-question' quiz.pk %}" class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">Add Question</a>
+                {% endif %}
+                <a href="{% url 'quiz-take' quiz.pk %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Take Quiz</a>
             </div>
         </div>
     </div>
     
-    {% if quizzes %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for quiz in quizzes %}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <h2 class="text-xl font-bold">{{ quiz.title }}</h2>
-                            {% if quiz.average_rating > 0 %}
-                                <div class="flex items-center bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                                    <span>{{ quiz.average_rating|floatformat:1 }}</span>
-                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <p class="text-gray-600 mb-4">{{ quiz.description|truncatewords:20 }}</p>
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <span class="text-sm text-gray-500">{{ quiz.questions.count }} questions</span>
-                                {% if quiz.category %}
-                                    <span class="mx-2">•</span>
-                                    <span class="text-sm text-gray-500">{{ quiz.category.name }}</span>
-                                {% endif %}
-                                {% if quiz.time_limit %}
-                                    <span class="mx-2">•</span>
-                                    <span class="text-sm text-gray-500">{{ quiz.time_limit }} min</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <a href="{% url 'quiz-detail' quiz.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
-                            <a href="{% url 'quiz-take' quiz.pk %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Take Quiz</a>
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4">Questions</h2>
+        {% if quiz.questions.all %}
+            <div class="space-y-4">
+                {% for question in quiz.questions.all %}
+                    <div class="border-b pb-4 last:border-0 last:pb-0">
+                        <h3 class="font-semibold">{{ question.order }}. {{ question.text }}</h3>
+                        <div class="mt-2 ml-6">
+                            <ul class="list-disc">
+                                {% for option in question.options.all %}
+                                    <li>{{ option.text }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="bg-white rounded-lg shadow-md p-8 text-center">
-            <p class="text-gray-600 mb-4">No quizzes available at the moment.</p>
-            {% if user.is_authenticated %}
-                <a href="{% url 'quiz-create' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create a Quiz</a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">No questions available for this quiz.</p>
+            {% if user.is_authenticated and user == quiz.created_by or user.is_staff %}
+                <a href="{% url 'add-question' quiz.pk %}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add First Question</a>
             {% endif %}
+        {% endif %}
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-2xl font-bold mb-4">Rate this Quiz</h2>
+            {% if user_rating %}
+                <p class="mb-4">You rated this quiz: {{ user_rating }}/7</p>
+            {% endif %}
+            <form method="post" action="{% url 'rate-quiz' quiz.pk %}">
+                {% csrf_token %}
+                <div class="flex items-center">
+                    {% for i in "1234567" %}
+                        <button type="submit" name="score" value="{{ i }}" class="text-2xl mx-1 focus:outline-none {% if user_rating and user_rating >= i|add:0 %}text-yellow-500{% else %}text-gray-300{% endif %} hover:text-yellow-500">
+                            ★
+                        </button>
+                    {% endfor %}
+                </div>
+            </form>
         </div>
     {% endif %}
 </div>

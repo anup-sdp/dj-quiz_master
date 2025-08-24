@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load duration_filters %}  <!-- custom filter -->
 {% block title %}Quiz Result - QuizMaster{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -9,10 +10,10 @@
                 <h2 class="text-xl font-semibold">{{ attempt.quiz.title }}</h2>
                 <p class="text-gray-600">Completed on: {{ attempt.completed_at|date:"F d, Y, P" }}</p>
                 {% if attempt.time_taken %}
-                    <p class="text-gray-600">Time taken: {{ attempt.time_taken|duration:"H:i:s" }}</p>
+                    <p class="text-gray-600">Time taken: {{ attempt.time_taken|duration }}</p>
                 {% endif %}
             </div>
-            <div class="text-2xl font-bold {% if attempt.score == attempt.max_score %}text-green-600{% elif attempt.score >= attempt.max_score/2 %}text-yellow-600{% else %}text-red-600{% endif %}">
+            <div class="text-2xl font-bold {% if attempt.score == attempt.max_score %}text-green-600{% else %}{% widthratio attempt.max_score 1 2 as half_score %}{% if attempt.score >= half_score %}text-yellow-600{% else %}text-red-600{% endif %}{% endif %}">
                 {{ attempt.score }}/{{ attempt.max_score }}
             </div>
         </div>
@@ -27,10 +28,13 @@
         <div class="text-center text-lg">
             {% if attempt.score == attempt.max_score %}
                 <span class="text-green-600 font-bold">Perfect Score! 🎉</span>
-            {% elif attempt.score >= attempt.max_score/2 %}
-                <span class="text-yellow-600 font-bold">Good Job! 👍</span>
             {% else %}
-                <span class="text-red-600 font-bold">Keep Practicing! 💪</span>
+                {% widthratio attempt.max_score 1 2 as half_score %}
+                {% if attempt.score >= half_score %}
+                    <span class="text-yellow-600 font-bold">Good Job! 👍</span>
+                {% else %}
+                    <span class="text-red-600 font-bold">Keep Practicing! 💪</span>
+                {% endif %}
             {% endif %}
         </div>
     </div>

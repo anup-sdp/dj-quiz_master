@@ -119,10 +119,8 @@ class TakeQuizView(LoginRequiredMixin, DetailView):
                     user=request.user,
                     quiz=self.object,
                     max_score=self.object.questions.aggregate(total=models.Sum('points'))['total'] or 0
-                )
-                
-                score = 0
-                
+                )                
+                score = 0                
                 # Process each question
                 for question in self.object.questions.all():
                     field_name = f"question_{question.id}"
@@ -207,6 +205,7 @@ class LeaderboardView(ListView):
             context['quiz'] = get_object_or_404(Quiz, id=quiz_id)
         return context
 
+
 class RateQuizView(LoginRequiredMixin, CreateView):
     model = Rating
     form_class = RatingForm
@@ -236,7 +235,8 @@ class RateQuizView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['quiz'] = get_object_or_404(Quiz, id=self.kwargs['quiz_id'])
         return context
-    
+
+
 
 class AddQuestionView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'quiz/add_question.html'
@@ -263,8 +263,7 @@ class AddQuestionView(LoginRequiredMixin, UserPassesTestMixin, View):
                 question = Question.objects.create(
                     quiz=quiz,
                     text=form.cleaned_data['question_text'],
-                    order=next_order,  # Set order automatically
-                    points=form.cleaned_data['points']
+                    order=next_order,  # Set order automatically                    
                 )
                 # Create the options
                 correct_option = int(form.cleaned_data['correct_option'])
