@@ -296,7 +296,13 @@ class UserQuizHistoryView(LoginRequiredMixin, ListView):
     context_object_name = 'attempts'
     
     def get_queryset(self):
-        return QuizAttempt.objects.filter(user=self.request.user)
+        return QuizAttempt.objects.filter(user=self.request.user).select_related('quiz')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add categories for filtering
+        context['categories'] = Category.objects.all()
+        return context
 
 class LeaderboardView(ListView):
     model = QuizAttempt
