@@ -39,6 +39,14 @@ class QuizListView(ListView):
         context['categories'] = Category.objects.all()
         context['selected_category'] = self.request.GET.get('category')
         context['sort_by'] = self.request.GET.get('sort', 'newest')
+        
+        # Add attempted quizzes for authenticated users
+        if self.request.user.is_authenticated:
+            attempted_quizzes = QuizAttempt.objects.filter(
+                user=self.request.user
+            ).values_list('quiz_id', flat=True)
+            context['attempted_quizzes'] = set(attempted_quizzes)
+        
         return context
 
 class QuizDetailView(DetailView):
@@ -108,6 +116,12 @@ class QuizDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 class TakeQuizView(LoginRequiredMixin, View):
     def get(self, request, pk):
         quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
+        
+        # Check if user has already attempted this quiz
+        if QuizAttempt.objects.filter(user=request.user, quiz=quiz).exists():
+            messages.error(request, 'You have already attempted this quiz.')
+            return redirect('quiz-detail', pk=quiz.id)
+        
         questions = list(quiz.questions.all().order_by('order'))
         total_questions = len(questions)
         
@@ -132,7 +146,7 @@ class TakeQuizView(LoginRequiredMixin, View):
         
         # Check if quiz is completed
         if current_question_index >= total_questions:
-            return redirect('quiz-complete', pk=quiz.id)  # Changed from quiz_id to pk
+            return redirect('quiz-complete', pk=quiz.id)
         
         current_question = questions[current_question_index]
         
@@ -151,34 +165,6 @@ class TakeQuizView(LoginRequiredMixin, View):
             'total_questions': total_questions,
             'progress': int((current_question_index / total_questions) * 100)
         })
-    
-    def post(self, request, pk):
-        quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
-        questions = list(quiz.questions.all().order_by('order'))
-        total_questions = len(questions)
-        
-        current_quiz_data = request.session['current_quiz']
-        current_question_index = current_quiz_data['current_question']
-        current_question = questions[current_question_index]
-        
-        # Get the selected option
-        selected_option_id = request.POST.get('answer')
-        
-        if selected_option_id:
-            # Save the answer in session
-            current_quiz_data['answers'][str(current_question.id)] = selected_option_id
-            request.session['current_quiz'] = current_quiz_data
-        
-        # Move to next question
-        current_question_index += 1
-        current_quiz_data['current_question'] = current_question_index
-        request.session['current_quiz'] = current_quiz_data
-        
-        # Check if quiz is completed
-        if current_question_index >= total_questions:
-            return redirect('quiz-complete', pk=quiz.id)  # Changed from quiz_id to pk
-        
-        return redirect('quiz-take', pk=quiz.id)
     
 # works with TakeQuizView
 class QuizCompleteView(LoginRequiredMixin, View):
@@ -282,17 +268,26 @@ class LeaderboardView(ListView):
     def get_queryset(self):
         quiz_id = self.kwargs.get('quiz_id')
         if quiz_id:
-            return QuizAttempt.objects.filter(quiz_id=quiz_id).order_by('-score', 'time_taken')
-        return QuizAttempt.objects.values('user__username').annotate(
-            total_score=models.Sum('score'),
-            total_attempts=models.Count('id')
-        ).order_by('-total_score')
+            # For specific quiz leaderboard, show the highest score per user
+            return QuizAttempt.objects.filter(quiz_id=quiz_id).values('user__username', 'user__id').annotate(
+                max_score=models.Max('score'),
+                min_time=models.Min('time_taken')
+            ).order_by('-max_score', 'min_time')
+        else:
+            # For overall leaderboard, show the highest score per user across all quizzes
+            return QuizAttempt.objects.values('user__username', 'user__id').annotate(
+                total_score=models.Sum('score'),
+                total_attempts=models.Count('id')
+            ).order_by('-total_score')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         quiz_id = self.kwargs.get('quiz_id')
         if quiz_id:
             context['quiz'] = get_object_or_404(Quiz, id=quiz_id)
+            context['is_specific_quiz'] = True
+        else:
+            context['is_specific_quiz'] = False
         return context
 
 
