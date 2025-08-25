@@ -6,6 +6,7 @@ export default {
     './static/js/**/*.js',
 	'./**/forms.py',
 	'./**/admin.py', 
+	'./**/navigation_tags.py'
 	// Add others only if you actually use CSS classes in them
   ],
   plugins: [

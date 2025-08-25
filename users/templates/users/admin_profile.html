@@ -8,6 +8,7 @@
             <h1 class="text-3xl font-bold">Admin Profile</h1>
             <a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit My Profile</a>
         </div>
+		<p class="my-3">Quiz created by me: <a href="{% url 'my-quiz-list' %}" class="text-sm text-green-500 bg-blue-500 px-3 py-1 rounded-md">show</a></p>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-gray-50 p-6 rounded-lg">
