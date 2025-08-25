@@ -53,9 +53,10 @@
                     <p>{{ user.bio }}</p>
                 </div>
             {% endif %}
-		</div>
-		<div>
-			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 m-6">Edit My Profile</a>    
+		</div>		
+		<div class="m-6 flex gap-3">
+			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 m-4">Edit My Profile</a> 
+			<a href="{% url 'password_reset' %}" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 m-4">reset password</a>  
 		</div>		    
     </div>
     

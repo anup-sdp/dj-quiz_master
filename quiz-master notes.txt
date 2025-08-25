@@ -20,7 +20,7 @@ python manage.py makemigrations
 python manage.py migrate
 
 python manage.py createsuperuser
-admin-1234
+admin-aB@123456
 ---
 anup30-anupbarua30@gmail.com-aB@12345
 lereno-lereno2076@chaublog.com-aB@12345

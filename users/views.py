@@ -8,6 +8,11 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserUpdateForm
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetView
+from django.utils.translation import gettext_lazy as _
+
+
 
 User = get_user_model()
 
@@ -86,6 +91,36 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Profile updated successfully!')
         return super().form_valid(form)
+
+
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'registration/password_reset.html'
+    email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    
+    def form_valid(self, form):
+        # Get the username from the form
+        username = form.cleaned_data['email']
+        
+        try:
+            # Find the user by username
+            user = User.objects.get(username=username)
+            
+            # If user has an email, proceed with password reset
+            if user.email:
+                # Create a form instance with the user's email
+                reset_form = PasswordResetForm({'email': user.email})
+                return super().form_valid(reset_form)
+            else:
+                messages.error(self.request, _("Your account doesn't have an associated email address. Please contact support.")) # _
+                return redirect('password_reset')
+        except User.DoesNotExist:
+            # Don't reveal whether a user account exists
+            messages.success(self.request, _("If your username exists in our system, you'll receive an email with password reset instructions.")) # _
+            return redirect('password_reset_done')
+        
 
 
 def verify_email(request, token):

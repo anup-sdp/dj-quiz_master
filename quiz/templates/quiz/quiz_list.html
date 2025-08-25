@@ -14,16 +14,7 @@
                         <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category %}selected{% endif %}>{{ category.name }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            
-            <div>
-                <label class="block text-gray-700 mb-2">Sort by:</label>
-                <select id="sort-by" class="border rounded p-2" onchange="location.href=`?category={{ selected_category }}&sort=${this.value}`">
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
-                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
-                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
-                </select>
-            </div>
+            </div>            
         </div>
     </div>
     

@@ -51,54 +51,10 @@
         	    </div>
         	{% endif %}
 		</div>        
-		<div class="m-6">
-			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Edit My Profile</a>    
-		</div>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold mb-6">Quiz History</h2>        
-        {% if user.quiz_attempts.all %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quiz</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Taken</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed At</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for attempt in user.quiz_attempts.all %}
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ attempt.quiz.title }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ attempt.score }}/{{ attempt.max_score }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {% if attempt.time_taken %}
-                                        {{ attempt.time_taken|duration }}
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ attempt.completed_at|date:"M d, Y, P" }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="text-center py-8">
-                <p class="text-gray-600">You haven't taken any quizzes yet.</p>
-                <a href="{% url 'quiz-list' %}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Browse Quizzes</a>
-            </div>
-        {% endif %}
+		<div class="m-6 flex gap-3">
+			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 m-4">Edit My Profile</a> 
+			<a href="{% url 'password_reset' %}" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700 m-4">reset password</a>  
+		</div>		
     </div>
 </div>
 {% endblock %}
