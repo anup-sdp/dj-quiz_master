@@ -5,11 +5,12 @@
 <div class="max-w-6xl mx-auto">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold">Admin Profile</h1>
-            <a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit My Profile</a>
+            <h1 class="text-3xl font-bold">Admin Profile</h1>            
         </div>
-		<p class="my-3">Quiz created by me: <a href="{% url 'my-quiz-list' %}" class="text-sm text-green-500 bg-blue-500 px-3 py-1 rounded-md">show</a></p>
-        
+		<p class="my-3">Create new Category: <a href="{% url 'category-create' %}" class="text-sm text-green-200 bg-blue-500 px-3 py-1 rounded-md">create</a></p>
+        <p class="my-3">Create new Quiz: <a href="{% url 'quiz-create' %}" class="text-sm text-green-200 bg-blue-500 px-3 py-1 rounded-md">create</a></p>
+		<p class="my-3">Quiz created by me: <a href="{% url 'my-quiz-list' %}" class="text-sm text-green-200 bg-blue-500 px-3 py-1 rounded-md">show</a></p>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-gray-50 p-6 rounded-lg">
                 <h2 class="text-xl font-semibold mb-4">Personal Information</h2>
@@ -43,15 +44,19 @@
                         {% endif %}
                     </p>
                 </div>
-            </div>
+            </div>            
         </div>
-        
-        {% if user.bio %}
-            <div class="mt-6 bg-gray-50 p-6 rounded-lg">
-                <h2 class="text-xl font-semibold mb-4">Bio</h2>
-                <p>{{ user.bio }}</p>
-            </div>
-        {% endif %}
+		<div class="mb-6">
+            {% if user.bio %}
+                <div class="mt-6 bg-gray-50 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-6">Bio</h2>
+                    <p>{{ user.bio }}</p>
+                </div>
+            {% endif %}
+		</div>
+		<div>
+			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 m-6">Edit My Profile</a>    
+		</div>		    
     </div>
     
     <div class="bg-white rounded-lg shadow-md p-6">

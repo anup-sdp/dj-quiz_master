@@ -2,7 +2,7 @@
 {% block title %}All Quizzes - QuizMaster{% endblock %}
 {% block content %}
 <div class="max-w-6xl mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Available Quizzes</h1>
+    <h1 class="text-3xl font-bold mb-6">Attempted Quizzes</h1>
     
     <div class="bg-white rounded-lg shadow-md p-4 mb-6">
         <div class="flex flex-wrap gap-4">
@@ -67,10 +67,7 @@
         </div>
     {% else %}
         <div class="bg-white rounded-lg shadow-md p-8 text-center">
-            <p class="text-gray-600 mb-4">No quizzes available at the moment.</p>
-            {% if user.is_authenticated %}
-                <a href="{% url 'quiz-create' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create a Quiz</a>
-            {% endif %}
+            <p class="text-gray-600 mb-4">You have not attempted any quizzes yet.</p>            
         </div>
     {% endif %}
 </div>

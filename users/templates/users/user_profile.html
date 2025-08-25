@@ -5,8 +5,7 @@
 <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold">My Profile</h1>
-            <a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit My Profile</a>
+            <h1 class="text-3xl font-bold">My Profile</h1>            
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -44,13 +43,17 @@
                 </div>
             </div>
         </div>
-        
-        {% if user.bio %}
-            <div class="mt-6 bg-gray-50 p-6 rounded-lg">
-                <h2 class="text-xl font-semibold mb-4">Bio</h2>
-                <p>{{ user.bio }}</p>
-            </div>
-        {% endif %}
+		<div>
+			{% if user.bio %}
+        	    <div class="mt-6 bg-gray-50 p-6 rounded-lg">
+        	        <h2 class="text-xl font-semibold mb-4">Bio</h2>
+        	        <p>{{ user.bio }}</p>
+        	    </div>
+        	{% endif %}
+		</div>        
+		<div>
+			<a href="{% url 'edit-profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 m-6">Edit My Profile</a>    
+		</div>
     </div>
     
     <div class="bg-white rounded-lg shadow-md p-6">

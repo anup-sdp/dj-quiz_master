@@ -63,6 +63,11 @@ class QuizForm(StyledFormMixin, forms.ModelForm):
         model = Quiz
         fields = ['title', 'description', 'category', 'time_limit']
 
+class CategoryForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'description']        
+
         
 class QuestionForm(StyledFormMixin, forms.ModelForm):
     class Meta:

@@ -10,7 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg, Count, Q
 from .models import Quiz, Question, Option, QuizAttempt, UserAnswer, Category, Rating
-from .forms import QuizForm, QuestionForm, OptionForm, TakeQuizForm, RatingForm, QuestionWithOptionsForm
+from .forms import QuizForm, QuestionForm, OptionForm, TakeQuizForm, RatingForm, QuestionWithOptionsForm, CategoryForm
 from django.db import models
 from datetime import datetime
 
@@ -58,14 +58,24 @@ class QuizDetailView(DetailView):
         return context
 
 class QuizCreateView(LoginRequiredMixin, CreateView):
-    model = Quiz
+    model = Category
     form_class = QuizForm
     template_name = 'quiz/quiz_form.html'
-    success_url = reverse_lazy('quiz-list')
+    success_url = reverse_lazy('profile')
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         messages.success(self.request, 'Quiz created successfully!')
+        return super().form_valid(form)    
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    model = Quiz
+    form_class = CategoryForm
+    template_name = 'quiz/category_form.html'
+    success_url = reverse_lazy('quiz-list')
+    
+    def form_valid(self, form):        
+        messages.success(self.request, 'Category created successfully!')
         return super().form_valid(form)
 
 class QuizUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
