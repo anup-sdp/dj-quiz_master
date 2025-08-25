@@ -125,24 +125,23 @@ class TakeQuizView(LoginRequiredMixin, View):
         questions = list(quiz.questions.all().order_by('order'))
         total_questions = len(questions)
         
-        # Check if user clicked previous
-        if 'previous' in request.GET:
-            current_quiz_data = request.session['current_quiz']
-            current_question_index = max(0, current_quiz_data['current_question'] - 1)
-            current_quiz_data['current_question'] = current_question_index
-            request.session['current_quiz'] = current_quiz_data
-        else:
-            # Initialize session variables if not exists
-            if 'current_quiz' not in request.session or request.session['current_quiz']['quiz_id'] != quiz.id:
-                request.session['current_quiz'] = {
-                    'quiz_id': quiz.id,
-                    'current_question': 0,
-                    'answers': {},
-                    'start_time': timezone.now().isoformat()
-                }
+        # Initialize session variables if not exists
+        if 'current_quiz' not in request.session or request.session['current_quiz']['quiz_id'] != quiz.id:
+            request.session['current_quiz'] = {
+                'quiz_id': quiz.id,
+                'current_question': 0,
+                'answers': {},
+                'start_time': timezone.now().isoformat()
+            }
         
         current_quiz_data = request.session['current_quiz']
         current_question_index = current_quiz_data['current_question']
+        
+        # Check if user clicked previous
+        if 'previous' in request.GET:
+            current_question_index = max(0, current_question_index - 1)
+            current_quiz_data['current_question'] = current_question_index
+            request.session['current_quiz'] = current_quiz_data
         
         # Check if quiz is completed
         if current_question_index >= total_questions:
@@ -166,6 +165,45 @@ class TakeQuizView(LoginRequiredMixin, View):
             'progress': int((current_question_index / total_questions) * 100)
         })
     
+    def post(self, request, pk):
+        quiz = get_object_or_404(Quiz, pk=pk, is_active=True)
+        questions = list(quiz.questions.all().order_by('order'))
+        total_questions = len(questions)
+        
+        # Check if user has already attempted this quiz
+        if QuizAttempt.objects.filter(user=request.user, quiz=quiz).exists():
+            messages.error(request, 'You have already attempted this quiz.')
+            return redirect('quiz-detail', pk=quiz.id)
+        
+        # Get quiz data from session
+        if 'current_quiz' not in request.session or request.session['current_quiz']['quiz_id'] != quiz.id:
+            messages.error(request, 'Quiz session expired. Please try again.')
+            return redirect('quiz-detail', pk=quiz.id)
+        
+        current_quiz_data = request.session['current_quiz']
+        current_question_index = current_quiz_data['current_question']
+        current_question = questions[current_question_index]
+        
+        # Get the selected option
+        selected_option_id = request.POST.get('answer')
+        
+        if selected_option_id:
+            # Save the answer in session
+            current_quiz_data['answers'][str(current_question.id)] = selected_option_id
+            request.session['current_quiz'] = current_quiz_data
+        
+        # Move to next question
+        current_question_index += 1
+        current_quiz_data['current_question'] = current_question_index
+        request.session['current_quiz'] = current_quiz_data
+        
+        # Check if quiz is completed
+        if current_question_index >= total_questions:
+            return redirect('quiz-complete', pk=quiz.id)
+        
+        return redirect('quiz-take', pk=quiz.id)
+    
+
 # works with TakeQuizView
 class QuizCompleteView(LoginRequiredMixin, View):
     def get(self, request, pk):
@@ -291,35 +329,38 @@ class LeaderboardView(ListView):
         return context
 
 
-class RateQuizView(LoginRequiredMixin, CreateView):
-    model = Rating
-    form_class = RatingForm
-    template_name = 'quiz/rate_quiz.html'
-    
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.quiz_id = self.kwargs['quiz_id']
+class RateQuizView(LoginRequiredMixin, View):
+    def post(self, request, quiz_id):
+        quiz = get_object_or_404(Quiz, pk=quiz_id)
+        score = request.POST.get('score')
         
-        # Check if user already rated this quiz
-        existing_rating = Rating.objects.filter(
-            user=self.request.user,
-            quiz_id=self.kwargs['quiz_id']
-        ).first()
-        
-        if existing_rating:
-            existing_rating.score = form.cleaned_data['score']
-            existing_rating.save()
-            messages.success(self.request, 'Your rating has been updated!')
+        if score and score.isdigit():
+            score = int(score)
+            if 1 <= score <= 7:
+                rating, created = Rating.objects.update_or_create(
+                    quiz=quiz,
+                    user=request.user,
+                    defaults={'score': score}
+                )
+                if created:
+                    messages.success(request, 'Thank you for rating!')
+                else:
+                    messages.success(request, 'Your rating has been updated!')
+            else:
+                messages.error(request, 'Invalid rating value!')
         else:
-            super().form_valid(form)
-            messages.success(self.request, 'Thank you for rating!')
+            messages.error(request, 'Please provide a valid rating!')
         
-        return redirect('quiz-detail', pk=self.kwargs['quiz_id'])
+        return redirect('quiz-detail', pk=quiz_id)
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['quiz'] = get_object_or_404(Quiz, id=self.kwargs['quiz_id'])
-        return context
+    def get(self, request, quiz_id):
+        quiz = get_object_or_404(Quiz, pk=quiz_id)
+        user_rating = Rating.objects.filter(quiz=quiz, user=request.user).first()
+        
+        return render(request, 'quiz/rate_quiz.html', {
+            'quiz': quiz,
+            'user_rating': user_rating.score if user_rating else None
+        })
 
 
 
