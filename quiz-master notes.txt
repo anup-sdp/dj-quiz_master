@@ -84,8 +84,12 @@ npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
 Alternative: Use the new Vite plugin (recommended)
 
 pip install python-decouple
-pip install whitenoise
 write .env file with secret info
+pip install whitenoise
+add 'whitenoise.middleware.WhiteNoiseMiddleware', in MIDDLEWARE after SecurityMiddleware
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# ^ to "python manage.py runserver" with DEBUG = False
+
 pip freeze > requirements.txt
 
 python manage.py collectstatic
