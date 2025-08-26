@@ -82,6 +82,13 @@ npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
 
 Alternative: Use the new Vite plugin (recommended)
 
+pip install python-decouple
+pip install whitenoise
+write .env file with secret info
+pip freeze > requirements.txt
+
+python manage.py collectstatic
+python manage.py collectstatic --noinput --clear
 
 
 

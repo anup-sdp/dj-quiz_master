@@ -66,16 +66,16 @@ class FormStyleMixin:  # was StyledFormMixin2
 
 class CustomUserCreationForm(FormStyleMixin, UserCreationForm):
     email = forms.EmailField(required=True)
-    phone_number = forms.CharField(required=False)
+    #phone_number = forms.CharField(required=False)   # can be added latter
     
     class Meta:
         model = CustomUser
-        fields = ("username", "email", "password1", "password2", "phone_number")
+        fields = ("username", "email", "password1", "password2", ) # "phone_number"
     
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
-        user.phone_number = self.cleaned_data["phone_number"]
+        #user.phone_number = self.cleaned_data["phone_number"]
         if user.is_superuser:
             user.user_type = 'admin'
         if commit:
